@@ -1,0 +1,40 @@
+from collections import deque
+
+class Graph:
+    def _init_(self):
+        self.adj_list = {}
+
+    def add_edge(self, u, v):
+        if u not in self.adj_list:
+            self.adj_list[u] = []
+        if v not in self.adj_list:
+            self.adj_list[v] = []
+        self.adj_list[u].append(v)
+        self.adj_list[v].append(u)
+
+    def bfs(self, start):
+        visited = {}
+        queue = deque([start])
+        level = {start: 0}
+
+        while queue:
+            node = queue.popleft()
+            print(f"Visited node: {node} at level {level[node]}")
+            visited[node] = True
+
+            for neighbor in self.adj_list[node]:
+                if neighbor not in visited:
+                    queue.append(neighbor)
+                    visited[neighbor] = True
+                    level[neighbor] = level[node] + 1
+
+# Example usage:
+graph = Graph()
+graph.add_edge(0, 1)
+graph.add_edge(0, 2)
+graph.add_edge(1, 2)
+graph.add_edge(2, 3)
+graph.add_edge(3, 3)
+
+print("Breadth First Traversal starting from vertex 2:")
+graph.bfs(2)

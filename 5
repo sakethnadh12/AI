@@ -1,0 +1,110 @@
+from collections import deque
+
+class State:
+    def _init_(self, missionaries, cannibals, boat, goal):
+        self.missionaries = missionaries  # Number of missionaries on the left bank
+        self.cannibals = cannibals        # Number of cannibals on the left bank
+        self.boat = boat                  # Boat position (1 for left bank, 0 for right bank)
+        self.goal = goal                  # Goal state
+        self.parent = None                # Parent state (for backtracking solution path)
+
+    def is_valid(self):
+        """
+        Check if the state is valid:
+        - No negative numbers.
+        - Missionaries are not outnumbered by cannibals on either bank.
+        """
+        if self.missionaries < 0 or self.cannibals < 0 or self.missionaries > 3 or self.cannibals > 3:
+            return False
+        if self.missionaries > 0 and self.missionaries < self.cannibals:
+            return False
+        if (3 - self.missionaries) > 0 and (3 - self.missionaries) < (3 - self.cannibals):
+            return False
+        return True
+
+    def is_goal(self):
+        """
+        Check if the current state is the goal state.
+        """
+        return self.missionaries == self.goal[0] and self.cannibals == self.goal[1] and self.boat == self.goal[2]
+
+    def _eq_(self, other):
+        return self.missionaries == other.missionaries and self.cannibals == other.cannibals and self.boat == other.boat
+
+    def _hash_(self):
+        return hash((self.missionaries, self.cannibals, self.boat))
+
+    def _repr_(self):
+        return f"({self.missionaries}, {self.cannibals}, {self.boat})"
+
+def get_successors(state):
+    """
+    Generate all possible valid successor states from the current state.
+    """
+    successors = []
+    boat = state.boat
+
+    moves = [
+        (1, 0),  # One missionary
+        (0, 1),  # One cannibal
+        (2, 0),  # Two missionaries
+        (0, 2),  # Two cannibals
+        (1, 1)   # One missionary and one cannibal
+    ]
+
+    for m, c in moves:
+        if boat == 1:  # Boat is on the left bank
+            new_state = State(state.missionaries - m, state.cannibals - c, 0, state.goal)
+        else:  # Boat is on the right bank
+            new_state = State(state.missionaries + m, state.cannibals + c, 1, state.goal)
+        
+        if new_state.is_valid():
+            new_state.parent = state
+            successors.append(new_state)
+
+    return successors
+
+def bfs(initial_state):
+    """
+    Perform a breadth-first search to find the solution.
+    """
+    queue = deque([initial_state])
+    visited = set()
+    visited.add(initial_state)
+
+    while queue:
+        state = queue.popleft()
+
+        if state.is_goal():
+            return state  # Return the goal state
+
+        for successor in get_successors(state):
+            if successor not in visited:
+                visited.add(successor)
+                queue.append(successor)
+    
+    return None  # No solution found
+
+def print_solution(solution):
+    """
+    Backtrack from the goal state to print the solution path.
+    """
+    path = []
+    state = solution
+    while state:
+        path.append(state)
+        state = state.parent
+    path.reverse()
+    
+    for state in path:
+        print(state)
+
+# Initial and goal states
+initial_state = State(3, 3, 1, (0, 0, 0))
+goal_state = bfs(initial_state)
+
+if goal_state:
+    print("Solution found:")
+    print_solution(goal_state)
+else:
+    print("No solution found.")

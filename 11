@@ -1,0 +1,59 @@
+# Map Coloring CSP using Backtracking
+
+def is_valid_assignment(state, color, assignment, graph):
+    for neighbor in graph[state]:
+        if neighbor in assignment and assignment[neighbor] == color:
+            return False
+    return True
+
+
+def backtracking(assignment, graph, colors):
+    # Check if assignment is complete
+    if len(assignment) == len(graph):
+        return assignment
+
+    # Select the unassigned variable (node) with the minimum remaining values (MRV)
+    unassigned_states = [state for state in graph if state not in assignment]
+    state = min(unassigned_states,
+                key=lambda x: len([color for color in colors if is_valid_assignment(x, color, assignment, graph)]))
+
+    for color in colors:
+        if is_valid_assignment(state, color, assignment, graph):
+            assignment[state] = color  # Assign color
+
+            # Continue to assign for the next state
+            result = backtracking(assignment, graph, colors)
+            if result is not None:
+                return result
+
+            # If not a valid assignment, remove the assignment (backtrack)
+            del assignment[state]
+
+    return None
+
+
+# Example usage
+def map_coloring(graph, colors):
+    assignment = {}
+    return backtracking(assignment, graph, colors)
+
+
+# Define the graph (adjacency list)
+graph = {
+    'WA': ['NT', 'SA'],
+    'NT': ['WA', 'SA', 'Q'],
+    'SA': ['WA', 'NT', 'Q', 'NSW', 'V'],
+    'Q': ['NT', 'SA', 'NSW'],
+    'NSW': ['Q', 'SA', 'V'],
+    'V': ['SA', 'NSW'],
+    'T': []  # Tasmania has no neighbors
+}
+
+# Define possible colors
+colors = ['Red', 'Green', 'Blue']
+
+# Solve the map coloring problem
+solution = map_coloring(graph, colors)
+print("Map Coloring Solution:")
+for state, color in solution.items():
+    print(f"{state}: {color}")
